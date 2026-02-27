@@ -131,18 +131,18 @@ Reference: [PRD](PRD.md).
 
 ## Phase 6: Polish and docs
 
-**Objective:** Align or deprecate existing MarkdownPromptSource; finalize public API; update README and add migration notes.
+**Objective:** Finalize public API; update README; document that FilePrompts is the markdown source and add migration notes.
 
 **Tasks:**
 
-- **MarkdownPromptSource:** Decide: align with FilePrompts (e.g. wrap or share parsing) or deprecate in favor of FilePrompts; document migration.
-- **Public API:** Finalize exports and any deprecated constructors (e.g. `from_mapping`, `load_source`) and document in CHANGELOG/README.
-- **README:** Update quick start to use `PromptRegistry(source, fallback=...)` and InMemoryPrompts/FilePrompts; document lazy loading and typing.
-- **Migration notes:** For existing users of `from_mapping` or `load_source`, provide a short migration path to the new API.
+- **MarkdownPromptSource:** FilePrompts is the markdown source; there is no separate MarkdownPromptSource to deprecate. Document this in README and IMPLEMENTATION.
+- **Public API:** Finalize exports and document in README (PromptRegistry, InMemoryPrompts, FilePrompts, prompt types; optional LangFusePrompts from `spidey.langfuse_source`). No deprecated `from_mapping` or `load_source` in codebase.
+- **README:** Quick start with `PromptRegistry(source, fallback=...)`, InMemoryPrompts/FilePrompts; lazy loading and typing; optional LangFuse and `spidey[langfuse]`.
+- **Migration notes:** For users coming from a hypothetical old API: use `PromptRegistry(InMemoryPrompts(mapping))` or `PromptRegistry(FilePrompts(path))`; no separate loaders.
 
 **Deliverables:**
 
-- Consistent public API; updated README and migration notes; MarkdownPromptSource status decided and documented.
+- Consistent public API; updated README; FilePrompts documented as the markdown source; short migration note in README.
 
 **Gate:** Ready for release; no breaking surprises for documented use cases.
 
