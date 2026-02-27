@@ -37,6 +37,18 @@ def test_file_prompts_invalid_config_raises_validation_error(tmp_path: Path):
         FilePrompts(tmp_path, config={"extension": 123})
 
 
+def test_file_prompts_frontmatter_becomes_prompt_metadata(tmp_path: Path):
+    """A file with YAML frontmatter produces a prompt whose metadata contains those fields."""
+    (tmp_path / "welcome.md").write_text(
+        "---\ntitle: Greeting\ndescription: A welcome prompt\n---\nHello\n"
+    )
+    source = FilePrompts(tmp_path)
+    prompt = source.get_prompt("welcome")
+    assert prompt.content == "Hello"
+    assert prompt.metadata.title == "Greeting"
+    assert prompt.metadata.description == "A welcome prompt"
+
+
 def test_file_prompts_parses_markdown_with_role_sections_as_messages(tmp_path: Path):
     """A file with ## user / ## assistant (or similar) sections becomes a multi-message prompt."""
     (tmp_path / "chat.md").write_text("""## system

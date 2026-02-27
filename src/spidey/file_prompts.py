@@ -2,16 +2,39 @@
 
 import re
 from pathlib import Path
+from typing import Any, Type
 
 from pydantic import BaseModel, ConfigDict
 
 from spidey.prompts import Message, MessagesPrompt, SimplePrompt
 
 
+def _parse_frontmatter(raw: str) -> tuple[dict[str, Any], str]:
+    """Parse YAML frontmatter and body from raw file content. Returns (metadata_dict, body)."""
+    try:
+        import frontmatter as fm
+
+        if hasattr(fm, "loads"):
+            post = fm.loads(raw)
+            return (dict(post.metadata), post.content)
+        # frontmatter 3.x: Frontmatter().read() returns {"attributes", "body"}; no "---" => body is ""
+        parser = fm.Frontmatter()
+        out = parser.read(raw)
+        attrs = out.get("attributes") or {}
+        body = out.get("body", "")
+        if not body.strip() and not attrs:
+            body = raw  # no frontmatter, whole file is body
+        return (attrs, body)
+    except Exception:
+        return ({}, raw)
+
+
 class FilePromptMetadata(BaseModel):
-    """Metadata for file-loaded prompts; allows extra fields from frontmatter."""
+    """Default metadata for file-loaded prompts; frontmatter keys become attributes. Accepts extra fields."""
 
     model_config = ConfigDict(extra="allow")
+    title: str | None = None
+    description: str | None = None
 
 
 class MessageDelimiters(BaseModel):
@@ -59,17 +82,17 @@ class FilePrompts:
             raise KeyError(key)
         file_path = self._path / f"{key}{self._config.extension}"
         raw = file_path.read_text()
-        body = self._strip_frontmatter(raw) if raw.strip().startswith("---") else raw
+        fm_dict, body = _parse_frontmatter(raw)
         body = body.strip()
+        metadata = self._metadata_from_frontmatter(fm_dict or {})
         messages = self._parse_markdown_sections(body)
         if messages:
-            return MessagesPrompt(metadata=FilePromptMetadata(), messages=messages)
-        return SimplePrompt(metadata=FilePromptMetadata(), content=body or "")
+            return MessagesPrompt(metadata=metadata, messages=messages)
+        return SimplePrompt(metadata=metadata, content=body or "")
 
-    def _strip_frontmatter(self, raw: str) -> str:
-        """Remove optional YAML frontmatter (--- ... ---); return body only."""
-        match = re.match(r"^---\s*\n(.*?)\n---\s*\n", raw, re.DOTALL)
-        return raw[match.end() :] if match else raw
+    def _metadata_from_frontmatter(self, fm: dict) -> BaseModel:
+        """Build prompt metadata from frontmatter dict; override in subclass or via metadata_model."""
+        return FilePromptMetadata.model_validate(fm)
 
     def _parse_markdown_sections(self, body: str) -> list[Message]:
         """Parse ## role\\ncontent sections; return [] if no sections."""
