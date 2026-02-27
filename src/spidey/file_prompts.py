@@ -1,10 +1,11 @@
 """FilePrompts: PromptSource that loads prompts from a directory of files (lazy)."""
 
+import re
 from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict
 
-from spidey.prompts import SimplePrompt
+from spidey.prompts import Message, MessagesPrompt, SimplePrompt
 
 
 class FilePromptMetadata(BaseModel):
@@ -51,12 +52,42 @@ class FilePrompts:
             if p.is_file() and p.suffix == ext
         )
 
-    def get_prompt(self, key: str) -> SimplePrompt:
+    def get_prompt(self, key: str) -> SimplePrompt | MessagesPrompt:
         """Load and parse the file for key; raise KeyError if key not in keys()."""
         key_list = self.keys()
         if key not in key_list:
             raise KeyError(key)
         file_path = self._path / f"{key}{self._config.extension}"
-        body = file_path.read_text()
-        # Minimal parsing: treat whole body as content (no frontmatter/messages yet).
-        return SimplePrompt(metadata=FilePromptMetadata(), content=body.strip())
+        raw = file_path.read_text()
+        body = self._strip_frontmatter(raw) if raw.strip().startswith("---") else raw
+        body = body.strip()
+        messages = self._parse_markdown_sections(body)
+        if messages:
+            return MessagesPrompt(metadata=FilePromptMetadata(), messages=messages)
+        return SimplePrompt(metadata=FilePromptMetadata(), content=body or "")
+
+    def _strip_frontmatter(self, raw: str) -> str:
+        """Remove optional YAML frontmatter (--- ... ---); return body only."""
+        match = re.match(r"^---\s*\n(.*?)\n---\s*\n", raw, re.DOTALL)
+        return raw[match.end() :] if match else raw
+
+    def _parse_markdown_sections(self, body: str) -> list[Message]:
+        """Parse ## role\\ncontent sections; return [] if no sections."""
+        if not body.startswith("## ") and "\n## " not in body:
+            return []
+        if body.startswith("## "):
+            body = body[3:]
+        parts = re.split(r"\n## ", body)
+        result: list[Message] = []
+        for part in parts:
+            part = part.strip()
+            if not part:
+                continue
+            first_newline = part.find("\n")
+            if first_newline == -1:
+                role, content = part, ""
+            else:
+                role, content = part[:first_newline].strip(), part[first_newline + 1 :].strip()
+            if role in ("system", "user", "assistant"):
+                result.append(Message(role=role, content=content))
+        return result

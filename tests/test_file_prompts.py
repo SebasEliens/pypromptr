@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 from pydantic import BaseModel, ValidationError
 
-from spidey import FilePrompts, SimplePrompt
+from spidey import FilePrompts, MessagesPrompt, SimplePrompt
 
 
 class MinimalMetadata(BaseModel):
@@ -35,3 +35,24 @@ def test_file_prompts_invalid_config_raises_validation_error(tmp_path: Path):
     """Invalid config (e.g. wrong type) is rejected at construction."""
     with pytest.raises(ValidationError):
         FilePrompts(tmp_path, config={"extension": 123})
+
+
+def test_file_prompts_parses_markdown_with_role_sections_as_messages(tmp_path: Path):
+    """A file with ## user / ## assistant (or similar) sections becomes a multi-message prompt."""
+    (tmp_path / "chat.md").write_text("""## system
+You are helpful.
+
+## user
+Hello
+
+## assistant
+Hi there
+""")
+    source = FilePrompts(tmp_path)
+    prompt = source.get_prompt("chat")
+    assert isinstance(prompt, MessagesPrompt)
+    assert prompt.messages == [
+        {"role": "system", "content": "You are helpful."},
+        {"role": "user", "content": "Hello"},
+        {"role": "assistant", "content": "Hi there"},
+    ]
