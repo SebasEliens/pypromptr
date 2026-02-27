@@ -7,7 +7,8 @@ class RenderedPrompt(BaseModel):
     """Result of rendering a prompt; carries metadata and final content for use (e.g. by an LLM)."""
 
     metadata: BaseModel
-    content: str
+    content: str = ""
+    messages: list[dict[str, str]] = []
 
 
 class SimplePrompt(BaseModel):
@@ -17,7 +18,11 @@ class SimplePrompt(BaseModel):
     content: str
 
     def render(self) -> RenderedPrompt:
-        return RenderedPrompt(metadata=self.metadata, content=self.content)
+        return RenderedPrompt(
+            metadata=self.metadata,
+            content=self.content,
+            messages=[{"role": "user", "content": self.content}],
+        )
 
 
 def _substitute(content: str, **kwargs: str) -> str:
@@ -36,4 +41,22 @@ class SimplePromptTemplate(BaseModel):
 
     def render(self, **kwargs: object) -> RenderedPrompt:
         content = _substitute(self.content, **kwargs)
-        return RenderedPrompt(metadata=self.metadata, content=content)
+        return RenderedPrompt(
+            metadata=self.metadata,
+            content=content,
+            messages=[{"role": "user", "content": content}],
+        )
+
+
+class MessagesPrompt(BaseModel):
+    """Static multi-block prompt; render returns the same messages."""
+
+    metadata: BaseModel
+    messages: list[dict[str, str]]
+
+    def render(self) -> RenderedPrompt:
+        return RenderedPrompt(
+            metadata=self.metadata,
+            content="",
+            messages=self.messages,
+        )

@@ -3,7 +3,12 @@
 import pytest
 from pydantic import BaseModel
 
-from spidey.prompts import RenderedPrompt, SimplePrompt, SimplePromptTemplate
+from spidey.prompts import (
+    MessagesPrompt,
+    RenderedPrompt,
+    SimplePrompt,
+    SimplePromptTemplate,
+)
 
 
 class MinimalMetadata(BaseModel):
@@ -28,3 +33,14 @@ def test_simple_prompt_template_render_substitutes_variables():
     )
     result = prompt.render(name="Alice")
     assert result.content == "Hello, Alice!"
+
+
+def test_messages_prompt_render_returns_same_messages():
+    """I have a prompt made of multiple role/content blocks; when I render it, I get those same messages back."""
+    messages = [
+        {"role": "user", "content": "Hi"},
+        {"role": "assistant", "content": "Hi there"},
+    ]
+    prompt = MessagesPrompt(metadata=MinimalMetadata(), messages=messages)
+    result = prompt.render()
+    assert result.messages == messages
