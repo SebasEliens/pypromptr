@@ -81,6 +81,23 @@ def test_file_prompts_as_registry_source(tmp_path: Path):
     assert rendered.content == "Hello"
 
 
+def test_file_prompts_metadata_model_validates_frontmatter(tmp_path: Path):
+    """I can pass a custom metadata model; frontmatter is validated against it."""
+    class MyMeta(BaseModel):
+        title: str
+        count: int
+
+    (tmp_path / "valid.md").write_text("---\ntitle: Hi\ncount: 2\n---\nBody")
+    source = FilePrompts(tmp_path, metadata_model=MyMeta)
+    prompt = source.get_prompt("valid")
+    assert prompt.metadata.title == "Hi"
+    assert prompt.metadata.count == 2
+
+    (tmp_path / "invalid.md").write_text("---\ntitle: Hi\ncount: not_an_int\n---\nBody")
+    with pytest.raises(ValidationError):
+        source.get_prompt("invalid")
+
+
 def test_file_prompts_config_accepts_custom_message_delimiters(tmp_path: Path):
     """I can pass custom message_delimiters in config (e.g. for parsing <user>...</user>); config is validated."""
     (tmp_path / "one.md").write_text("Single block")

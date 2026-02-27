@@ -56,7 +56,13 @@ class FilePromptsConfig(BaseModel):
 class FilePrompts:
     """PromptSource that discovers keys from filenames and loads prompt body on get_prompt(key)."""
 
-    def __init__(self, path: Path | str, config: FilePromptsConfig | dict | None = None) -> None:
+    def __init__(
+        self,
+        path: Path | str,
+        config: FilePromptsConfig | dict | None = None,
+        *,
+        metadata_model: Type[BaseModel] | None = None,
+    ) -> None:
         self._path = Path(path)
         if config is None:
             self._config = FilePromptsConfig()
@@ -64,6 +70,7 @@ class FilePrompts:
             self._config = FilePromptsConfig.model_validate(config)
         else:
             self._config = config
+        self._metadata_model = metadata_model or FilePromptMetadata
 
     def keys(self) -> list[str]:
         """Return key set from filenames with configured extension; no file bodies loaded."""
@@ -91,8 +98,8 @@ class FilePrompts:
         return SimplePrompt(metadata=metadata, content=body or "")
 
     def _metadata_from_frontmatter(self, fm: dict) -> BaseModel:
-        """Build prompt metadata from frontmatter dict; override in subclass or via metadata_model."""
-        return FilePromptMetadata.model_validate(fm)
+        """Build prompt metadata from frontmatter; use metadata_model if set."""
+        return self._metadata_model.model_validate(fm)
 
     def _parse_markdown_sections(self, body: str) -> list[Message]:
         """Parse ## role\\ncontent sections; return [] if no sections."""
