@@ -26,7 +26,7 @@ class SimplePrompt(BaseModel):
     metadata: BaseModel
     content: str
 
-    def render(self) -> RenderedPrompt:
+    def render(self, **kwargs: object) -> RenderedPrompt:
         return RenderedPrompt(
             metadata=self.metadata,
             content=self.content,
@@ -63,7 +63,7 @@ class MessagesPrompt(BaseModel):
     metadata: BaseModel
     messages: list[Message]
 
-    def render(self) -> RenderedPrompt:
+    def render(self, **kwargs: object) -> RenderedPrompt:
         return RenderedPrompt(
             metadata=self.metadata,
             content="",

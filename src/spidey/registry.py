@@ -58,3 +58,7 @@ class PromptRegistry:
             if self._fallback is None:
                 raise
             return self._fallback.get_prompt(key)
+
+    def get(self, key: str, **kwargs: object) -> RenderedPrompt:
+        """Return the prompt for key, rendered with the given template variables."""
+        return self.get_prompt(key).render(**kwargs)
