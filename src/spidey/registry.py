@@ -50,13 +50,14 @@ class PromptRegistry:
     ) -> None:
         self._source = source
         self._fallback = fallback
+        # Build key set at init from source and fallback keys only (no prompt bodies loaded).
+        self._key_set: list[str] = sorted(
+            set(source.keys()) | (set(fallback.keys()) if fallback else set())
+        )
 
     def keys(self) -> list[str]:
-        """Return the union of keys from source and fallback (no prompt bodies loaded)."""
-        result = set(self._source.keys())
-        if self._fallback is not None:
-            result |= set(self._fallback.keys())
-        return sorted(result)
+        """Return the union of keys from source and fallback (built at init)."""
+        return self._key_set
 
     def __add__(self, other: "PromptRegistry") -> "PromptRegistry":
         """Combine two registries; resolution is first-wins (self then other)."""

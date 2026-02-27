@@ -16,6 +16,19 @@ class MinimalMetadata(BaseModel):
     pass
 
 
+def test_registry_keys_returns_union_of_source_and_fallback():
+    """I can list all keys from a registry without loading prompt bodies; source and fallback keys are combined."""
+    source = InMemoryPrompts({
+        "a": SimplePrompt(metadata=MinimalMetadata(), content=""),
+        "b": SimplePrompt(metadata=MinimalMetadata(), content=""),
+    })
+    fallback = InMemoryPrompts({
+        "c": SimplePrompt(metadata=MinimalMetadata(), content=""),
+    })
+    registry = PromptRegistry(source, fallback=fallback)
+    assert set(registry.keys()) == {"a", "b", "c"}
+
+
 def test_registry_from_in_memory_returns_prompt_by_key():
     """I build a registry from an in-memory mapping; when I ask for a key, I get that prompt."""
     welcome = SimplePrompt(metadata=MinimalMetadata(), content="Hello")
