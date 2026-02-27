@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 from pydantic import BaseModel, ValidationError
 
-from spidey import FilePrompts, MessagesPrompt, SimplePrompt
+from spidey import FilePrompts, PromptRegistry, MessagesPrompt, SimplePrompt
 
 
 class MinimalMetadata(BaseModel):
@@ -56,3 +56,24 @@ Hi there
         {"role": "user", "content": "Hello"},
         {"role": "assistant", "content": "Hi there"},
     ]
+
+
+def test_file_prompts_as_registry_source(tmp_path: Path):
+    """I can use FilePrompts as the source of a registry; get_prompt and get work as with in-memory."""
+    (tmp_path / "greeting.md").write_text("Hello")
+    registry = PromptRegistry(FilePrompts(tmp_path))
+    assert "greeting" in registry.keys()
+    prompt = registry.get_prompt("greeting")
+    assert prompt.content == "Hello"
+    rendered = registry.get("greeting")
+    assert rendered.content == "Hello"
+
+
+def test_file_prompts_config_accepts_custom_message_delimiters(tmp_path: Path):
+    """I can pass custom message_delimiters in config (e.g. for parsing <user>...</user>); config is validated."""
+    (tmp_path / "one.md").write_text("Single block")
+    source = FilePrompts(tmp_path, config={
+        "message_delimiters": {"user": "<user>", "system": "<system>", "assistant": "<assistant>"},
+    })
+    assert source.keys() == ["one"]
+    assert source.get_prompt("one").content == "Single block"
