@@ -8,9 +8,11 @@ from spidey.prompts import (
     SimplePrompt,
     SimplePromptTemplate,
 )
+from spidey.file_prompts import FilePrompts
 from spidey.registry import InMemoryPrompts, PromptRegistry
 
 __all__ = [
+    "FilePrompts",
     "InMemoryPrompts",
     "Message",
     "MessagesPrompt",
