@@ -47,13 +47,18 @@ class PromptRegistry:
         self,
         source: PromptSource,
         fallback: PromptSource | None = None,
+        *,
+        validate_at_init: bool = False,
     ) -> None:
         self._source = source
         self._fallback = fallback
         # Build key set at init from source and fallback keys only (no prompt bodies loaded).
-        self._key_set: list[str] = sorted(
+        self._key_set = sorted(
             set(source.keys()) | (set(fallback.keys()) if fallback else set())
         )
+        if validate_at_init:
+            for key in self._key_set:
+                self.get_prompt(key)
 
     def keys(self) -> list[str]:
         """Return the union of keys from source and fallback (built at init)."""

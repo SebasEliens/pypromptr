@@ -93,3 +93,26 @@ def test_combined_registry_first_wins_on_overlapping_key():
     second = PromptRegistry(InMemoryPrompts({"shared": prompt_second}))
     combined = first + second
     assert combined.get_prompt("shared") is prompt_first
+
+
+def test_registry_validate_at_init_fetches_each_key():
+    """With validate_at_init=True, the registry validates that each key is fetchable at construction."""
+    source = InMemoryPrompts({
+        "a": SimplePrompt(metadata=MinimalMetadata(), content=""),
+    })
+    registry = PromptRegistry(source, validate_at_init=True)
+    assert registry.keys() == ["a"]
+    assert registry.get_prompt("a").content == ""
+
+
+def test_registry_validate_at_init_raises_when_key_not_fetchable():
+    """With validate_at_init=True, if a key is not fetchable, construction raises."""
+    class BrokenSource:
+        def keys(self):
+            return ["missing"]
+
+        def get_prompt(self, key):
+            raise KeyError(key)
+
+    with pytest.raises(KeyError, match="missing"):
+        PromptRegistry(BrokenSource(), validate_at_init=True)
