@@ -51,6 +51,17 @@ class PromptRegistry:
         self._source = source
         self._fallback = fallback
 
+    def keys(self) -> list[str]:
+        """Return the union of keys from source and fallback (no prompt bodies loaded)."""
+        result = set(self._source.keys())
+        if self._fallback is not None:
+            result |= set(self._fallback.keys())
+        return sorted(result)
+
+    def __add__(self, other: "PromptRegistry") -> "PromptRegistry":
+        """Combine two registries; resolution is first-wins (self then other)."""
+        return PromptRegistry(source=self, fallback=other)
+
     def get_prompt(self, key: str) -> PromptLike:
         try:
             return self._source.get_prompt(key)
