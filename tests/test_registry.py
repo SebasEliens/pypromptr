@@ -143,3 +143,31 @@ def test_listing_keys_does_not_load_prompt_bodies():
     registry = PromptRegistry(source)
     assert registry.keys() == ["a", "b"]
     assert fetched == [], "keys() must not call get_prompt; no prompt bodies loaded"
+
+
+def test_get_prompt_loads_only_the_requested_key():
+    """When I ask for one prompt by key, only that key is loaded (e.g. one file or one API call), not all prompts."""
+    fetched: list[str] = []
+
+    class TrackingSource:
+        def __init__(self, mapping):
+            self._prompts = dict(mapping)
+
+        def keys(self):
+            return list(self._prompts.keys())
+
+        def get_prompt(self, key):
+            fetched.append(key)
+            if key not in self._prompts:
+                raise KeyError(key)
+            return self._prompts[key]
+
+    source = TrackingSource({
+        "a": SimplePrompt(metadata=MinimalMetadata(), content="A"),
+        "b": SimplePrompt(metadata=MinimalMetadata(), content="B"),
+    })
+    registry = PromptRegistry(source)
+    _ = registry.get_prompt("a")
+    assert fetched == ["a"]
+    _ = registry.get_prompt("b")
+    assert fetched == ["a", "b"], "each get_prompt(key) loads only that key"
