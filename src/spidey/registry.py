@@ -1,5 +1,5 @@
 """PromptRegistry and PromptSource: registry API and InMemoryPrompts."""
-
+from __future__ import annotations
 from typing import Protocol
 
 from spidey.prompts import (
@@ -64,7 +64,7 @@ class PromptRegistry:
         """Return the union of keys from source and fallback (built at init)."""
         return self._key_set
 
-    def __add__(self, other: "PromptRegistry") -> "PromptRegistry":
+    def __add__(self, other: PromptRegistry) -> PromptRegistry:
         """Combine two registries; resolution is first-wins (self then other)."""
         return PromptRegistry(source=self, fallback=other)
 
