@@ -5,6 +5,7 @@ from pydantic import BaseModel
 
 from spidey.prompts import (
     MessagesPrompt,
+    MessagesPromptTemplate,
     RenderedPrompt,
     SimplePrompt,
     SimplePromptTemplate,
@@ -44,3 +45,13 @@ def test_messages_prompt_render_returns_same_messages():
     prompt = MessagesPrompt(metadata=MinimalMetadata(), messages=messages)
     result = prompt.render()
     assert result.messages == messages
+
+
+def test_messages_prompt_template_render_substitutes_variables():
+    """I have a multi-message prompt with placeholders; when I render it with variables, I get the final messages."""
+    messages = [{"role": "user", "content": "Hello, {{name}}"}]
+    prompt = MessagesPromptTemplate(
+        metadata=MinimalMetadata(), messages=messages
+    )
+    result = prompt.render(name="Alice")
+    assert result.messages == [{"role": "user", "content": "Hello, Alice"}]

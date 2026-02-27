@@ -60,3 +60,24 @@ class MessagesPrompt(BaseModel):
             content="",
             messages=self.messages,
         )
+
+
+class MessagesPromptTemplate(BaseModel):
+    """Multi-block prompt with placeholders; render substitutes variables in each message."""
+
+    metadata: BaseModel
+    messages: list[dict[str, str]]
+
+    def render(self, **kwargs: object) -> RenderedPrompt:
+        rendered_messages = [
+            {
+                **msg,
+                "content": _substitute(msg.get("content", ""), **kwargs),
+            }
+            for msg in self.messages
+        ]
+        return RenderedPrompt(
+            metadata=self.metadata,
+            content="",
+            messages=rendered_messages,
+        )
