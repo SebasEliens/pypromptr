@@ -10,23 +10,39 @@ from spidey.prompts import Message, MessagesPrompt, SimplePrompt
 
 
 def _parse_frontmatter(raw: str) -> tuple[dict[str, Any], str]:
-    """Parse YAML frontmatter and body from raw file content. Returns (metadata_dict, body)."""
+    """Split YAML frontmatter and body. Returns (metadata_dict, body). Handles python-frontmatter and frontmatter 3.x."""
     try:
         import frontmatter as fm
 
         if hasattr(fm, "loads"):
             post = fm.loads(raw)
             return (dict(post.metadata), post.content)
-        # frontmatter 3.x: Frontmatter().read() returns {"attributes", "body"}; no "---" => body is ""
         parser = fm.Frontmatter()
         out = parser.read(raw)
         attrs = out.get("attributes") or {}
         body = out.get("body", "")
         if not body.strip() and not attrs:
-            body = raw  # no frontmatter, whole file is body
+            body = raw
         return (attrs, body)
     except Exception:
         return ({}, raw)
+
+
+def _parse_role_sections(body: str) -> list[Message]:
+    """Parse ## role\\ncontent blocks. Returns [] if no sections."""
+    if not body.startswith("## ") and "\n## " not in body:
+        return []
+    text = body[3:] if body.startswith("## ") else body
+    result: list[Message] = []
+    for part in re.split(r"\n## ", text):
+        part = part.strip()
+        if not part:
+            continue
+        first_newline = part.find("\n")
+        role, content = (part, "") if first_newline == -1 else (part[:first_newline].strip(), part[first_newline + 1 :].strip())
+        if role in ("system", "user", "assistant"):
+            result.append(Message(role=role, content=content))
+    return result
 
 
 class FilePromptMetadata(BaseModel):
@@ -84,40 +100,13 @@ class FilePrompts:
 
     def get_prompt(self, key: str) -> SimplePrompt | MessagesPrompt:
         """Load and parse the file for key; raise KeyError if key not in keys()."""
-        key_list = self.keys()
-        if key not in key_list:
+        if key not in self.keys():
             raise KeyError(key)
-        file_path = self._path / f"{key}{self._config.extension}"
-        raw = file_path.read_text()
+        raw = (self._path / f"{key}{self._config.extension}").read_text()
         fm_dict, body = _parse_frontmatter(raw)
         body = body.strip()
-        metadata = self._metadata_from_frontmatter(fm_dict or {})
-        messages = self._parse_markdown_sections(body)
+        metadata = self._metadata_model.model_validate(fm_dict or {})
+        messages = _parse_role_sections(body)
         if messages:
             return MessagesPrompt(metadata=metadata, messages=messages)
         return SimplePrompt(metadata=metadata, content=body or "")
-
-    def _metadata_from_frontmatter(self, fm: dict) -> BaseModel:
-        """Build prompt metadata from frontmatter; use metadata_model if set."""
-        return self._metadata_model.model_validate(fm)
-
-    def _parse_markdown_sections(self, body: str) -> list[Message]:
-        """Parse ## role\\ncontent sections; return [] if no sections."""
-        if not body.startswith("## ") and "\n## " not in body:
-            return []
-        if body.startswith("## "):
-            body = body[3:]
-        parts = re.split(r"\n## ", body)
-        result: list[Message] = []
-        for part in parts:
-            part = part.strip()
-            if not part:
-                continue
-            first_newline = part.find("\n")
-            if first_newline == -1:
-                role, content = part, ""
-            else:
-                role, content = part[:first_newline].strip(), part[first_newline + 1 :].strip()
-            if role in ("system", "user", "assistant"):
-                result.append(Message(role=role, content=content))
-        return result
