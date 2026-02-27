@@ -1,13 +1,19 @@
 [project]
 name = "spidey"
 version = "0.1.0"
-description = "Add your description here"
+description = "Prompt registry with swappable backends (in-memory, file, LangFuse)."
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "frontmatter>=1.1.0",
     "pydantic>=2.12.5",
 ]
+
+[project.optional-dependencies]
+langfuse = ["langfuse>=2.0"]
+
+[project.urls]
+Repository = "https://github.com/your-org/spidey"
 
 [dependency-groups]
 dev = [
