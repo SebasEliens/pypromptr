@@ -1,5 +1,6 @@
 """Tests for PromptRegistry and InMemoryPrompts. User-perspective: get prompts by key."""
 
+import pytest
 from pydantic import BaseModel
 
 from spidey import (
@@ -34,3 +35,27 @@ def test_registry_get_renders_prompt_with_variables():
     rendered = registry.get("greeting", name="Alice")
     assert isinstance(rendered, RenderedPrompt)
     assert rendered.content == "Hello, Alice!"
+
+
+def test_registry_fallback_when_key_missing_in_source():
+    """I use a registry with a fallback; when a key is only in the fallback, I get that prompt."""
+    only_in_source = SimplePrompt(
+        metadata=MinimalMetadata(), content="From source"
+    )
+    only_in_fallback = SimplePrompt(
+        metadata=MinimalMetadata(), content="From fallback"
+    )
+    source = InMemoryPrompts({"a": only_in_source})
+    fallback = InMemoryPrompts({"b": only_in_fallback})
+    registry = PromptRegistry(source, fallback=fallback)
+    assert registry.get_prompt("a") is only_in_source
+    assert registry.get_prompt("b") is only_in_fallback
+
+
+def test_registry_raises_key_error_when_key_missing_in_both():
+    """When a key is in neither source nor fallback, I get KeyError."""
+    source = InMemoryPrompts({"a": SimplePrompt(metadata=MinimalMetadata(), content="")})
+    fallback = InMemoryPrompts({"b": SimplePrompt(metadata=MinimalMetadata(), content="")})
+    registry = PromptRegistry(source, fallback=fallback)
+    with pytest.raises(KeyError, match="c"):
+        registry.get_prompt("c")
