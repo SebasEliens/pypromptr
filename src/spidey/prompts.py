@@ -1,6 +1,15 @@
 """Prompt type hierarchy: SimplePrompt, MessagesPrompt, templates, and RenderedPrompt."""
 
+from typing import TypedDict
+
 from pydantic import BaseModel
+
+
+class Message(TypedDict):
+    """A single message with explicit role and content (e.g. user, system, assistant)."""
+
+    role: str
+    content: str
 
 
 class RenderedPrompt(BaseModel):
@@ -8,7 +17,7 @@ class RenderedPrompt(BaseModel):
 
     metadata: BaseModel
     content: str = ""
-    messages: list[dict[str, str]] = []
+    messages: list[Message] = []
 
 
 class SimplePrompt(BaseModel):
@@ -21,7 +30,7 @@ class SimplePrompt(BaseModel):
         return RenderedPrompt(
             metadata=self.metadata,
             content=self.content,
-            messages=[{"role": "user", "content": self.content}],
+            messages=[Message(role="user", content=self.content)],
         )
 
 
@@ -44,7 +53,7 @@ class SimplePromptTemplate(BaseModel):
         return RenderedPrompt(
             metadata=self.metadata,
             content=content,
-            messages=[{"role": "user", "content": content}],
+            messages=[Message(role="user", content=content)],
         )
 
 
@@ -52,7 +61,7 @@ class MessagesPrompt(BaseModel):
     """Static multi-block prompt; render returns the same messages."""
 
     metadata: BaseModel
-    messages: list[dict[str, str]]
+    messages: list[Message]
 
     def render(self) -> RenderedPrompt:
         return RenderedPrompt(
@@ -66,14 +75,14 @@ class MessagesPromptTemplate(BaseModel):
     """Multi-block prompt with placeholders; render substitutes variables in each message."""
 
     metadata: BaseModel
-    messages: list[dict[str, str]]
+    messages: list[Message]
 
     def render(self, **kwargs: object) -> RenderedPrompt:
-        rendered_messages = [
-            {
-                **msg,
-                "content": _substitute(msg.get("content", ""), **kwargs),
-            }
+        rendered_messages: list[Message] = [
+            Message(
+                role=msg["role"],
+                content=_substitute(msg.get("content", ""), **kwargs),
+            )
             for msg in self.messages
         ]
         return RenderedPrompt(
