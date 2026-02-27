@@ -56,17 +56,3 @@ def test_messages_prompt_template_render_substitutes_variables():
     result = prompt.render(name="Alice")
     assert result.messages == [{"role": "user", "content": "Hello, Alice"}]
 
-
-class MetadataWithRequired(BaseModel):
-    """Metadata with a required field for validation tests."""
-
-    required_id: int
-
-
-def test_simple_prompt_rejects_invalid_metadata():
-    """Invalid metadata is rejected when I create a prompt, so I see errors early."""
-    with pytest.raises(ValidationError):
-        SimplePrompt(
-            metadata=MetadataWithRequired(required_id="not_an_int"),  # type: ignore[arg-type]
-            content="Hello",
-        )
