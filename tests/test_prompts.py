@@ -3,7 +3,7 @@
 import pytest
 from pydantic import BaseModel
 
-from spidey.prompts import RenderedPrompt, SimplePrompt
+from spidey.prompts import RenderedPrompt, SimplePrompt, SimplePromptTemplate
 
 
 class MinimalMetadata(BaseModel):
@@ -19,3 +19,12 @@ def test_simple_prompt_render_returns_same_content():
     assert isinstance(result, RenderedPrompt)
     assert result.content == "Hello"
     assert result.metadata == prompt.metadata
+
+
+def test_simple_prompt_template_render_substitutes_variables():
+    """I have a prompt with placeholders; when I render it with variables, I get the final string."""
+    prompt = SimplePromptTemplate(
+        metadata=MinimalMetadata(), content="Hello, {{name}}!"
+    )
+    result = prompt.render(name="Alice")
+    assert result.content == "Hello, Alice!"

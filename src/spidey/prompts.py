@@ -18,3 +18,22 @@ class SimplePrompt(BaseModel):
 
     def render(self) -> RenderedPrompt:
         return RenderedPrompt(metadata=self.metadata, content=self.content)
+
+
+def _substitute(content: str, **kwargs: str) -> str:
+    """Replace {{key}} placeholders in content with values from kwargs."""
+    result = content
+    for key, value in kwargs.items():
+        result = result.replace(f"{{{{{key}}}}}", str(value))
+    return result
+
+
+class SimplePromptTemplate(BaseModel):
+    """Single-block prompt with placeholders; render substitutes variables."""
+
+    metadata: BaseModel
+    content: str
+
+    def render(self, **kwargs: object) -> RenderedPrompt:
+        content = _substitute(self.content, **kwargs)
+        return RenderedPrompt(metadata=self.metadata, content=content)
