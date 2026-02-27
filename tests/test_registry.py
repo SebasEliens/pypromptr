@@ -116,3 +116,30 @@ def test_registry_validate_at_init_raises_when_key_not_fetchable():
 
     with pytest.raises(KeyError, match="missing"):
         PromptRegistry(BrokenSource(), validate_at_init=True)
+
+
+def test_listing_keys_does_not_load_prompt_bodies():
+    """I can list all keys without loading any prompt content; only key discovery runs (e.g. for lazy/file sources)."""
+    fetched: list[str] = []
+
+    class TrackingSource:
+        """Source that records which keys were requested via get_prompt."""
+
+        def __init__(self, mapping):
+            self._prompts = dict(mapping)
+
+        def keys(self):
+            return list(self._prompts.keys())
+
+        def get_prompt(self, key):
+            fetched.append(key)
+            if key not in self._prompts:
+                raise KeyError(key)
+            return self._prompts[key]
+
+    prompt_a = SimplePrompt(metadata=MinimalMetadata(), content="A")
+    prompt_b = SimplePrompt(metadata=MinimalMetadata(), content="B")
+    source = TrackingSource({"a": prompt_a, "b": prompt_b})
+    registry = PromptRegistry(source)
+    assert registry.keys() == ["a", "b"]
+    assert fetched == [], "keys() must not call get_prompt; no prompt bodies loaded"
