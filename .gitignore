@@ -10,3 +10,7 @@ wheels/
 .venv
 
 .local/
+
+# Benchmark / profile output
+profile_get_prompt.stats
+*.prof
