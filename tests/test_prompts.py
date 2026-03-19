@@ -3,7 +3,7 @@
 import pytest
 from pydantic import BaseModel, ValidationError
 
-from spidey.prompts import (
+from spideyprompt.prompts import (
     MessagesPrompt,
     MessagesPromptTemplate,
     RenderedPrompt,

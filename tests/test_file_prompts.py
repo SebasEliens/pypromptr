@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 from pydantic import BaseModel, ValidationError
 
-from spidey import FilePrompts, PromptRegistry, MessagesPrompt, SimplePrompt
+from spideyprompt import FilePrompts, PromptRegistry, MessagesPrompt, SimplePrompt
 
 
 class MinimalMetadata(BaseModel):

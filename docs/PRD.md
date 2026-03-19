@@ -34,7 +34,7 @@ Teams need a single, stable way to use prompts in code while being able to chang
 **Registry from a single source (optional fallback):**
 
 ```python
-from spidey import PromptRegistry, InMemoryPrompts, FilePrompts
+from spideyprompt import PromptRegistry, InMemoryPrompts, FilePrompts
 
 # In-memory
 prompts = PromptRegistry(InMemoryPrompts({"welcome": welcome_prompt}))

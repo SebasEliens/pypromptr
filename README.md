@@ -5,8 +5,8 @@ Prompt registry with swappable backends: in-memory dicts, a directory of markdow
 ## Quick start
 
 ```python
-from spidey import PromptRegistry, InMemoryPrompts, FilePrompts
-from spidey.prompts import SimplePromptTemplate
+from spideyprompt import PromptRegistry, InMemoryPrompts, FilePrompts
+from spideyprompt.prompts import SimplePromptTemplate
 
 # In-memory
 registry = PromptRegistry(InMemoryPrompts({
@@ -42,7 +42,7 @@ combined = app_prompts + lib_prompts
 |--------|----------|
 | **InMemoryPrompts** | Dict of key → prompt; no I/O. |
 | **FilePrompts** | Directory of markdown files; keys from filenames; lazy load on `get_prompt(key)`. |
-| **LangFusePrompts** | Optional: `pip install spidey[langfuse]`, then `from spidey.langfuse_source import LangFusePrompts`. |
+| **LangFusePrompts** | Optional: `pip install spideyprompt[langfuse]`, then `from spideyprompt.langfuse_source import LangFusePrompts`. |
 
 FilePrompts is the built-in markdown source (frontmatter + body; no separate “MarkdownPromptSource”). See [ADDING_A_PROMPT_STORE.md](docs/ADDING_A_PROMPT_STORE.md) to implement your own store.
 
@@ -59,14 +59,14 @@ Prompts carry optional Pydantic metadata. The registry is designed so that `get_
 ## Optional: LangFuse
 
 ```bash
-pip install spidey[langfuse]
+pip install spideyprompt[langfuse]
 ```
 
 Configure via environment (`LANGFUSE_SECRET_KEY`, `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_HOST`) or pass a client:
 
 ```python
-from spidey import PromptRegistry
-from spidey.langfuse_source import LangFusePrompts
+from spideyprompt import PromptRegistry
+from spideyprompt.langfuse_source import LangFusePrompts
 
 registry = PromptRegistry(LangFusePrompts())
 rendered = registry.get("my-prompt-name", **variables)
@@ -76,13 +76,13 @@ See [ADDING_A_PROMPT_STORE.md](docs/ADDING_A_PROMPT_STORE.md) for env vars and a
 
 ## Public API
 
-**From `spidey`:**
+**From `spideyprompt`:**
 - `PromptRegistry` — main entry point.
 - `InMemoryPrompts`, `FilePrompts`, `FilePromptsConfig`, `FilePromptMetadata`.
 - `SimplePrompt`, `SimplePromptTemplate`, `MessagesPrompt`, `MessagesPromptTemplate`, `Message`, `RenderedPrompt`.
 
-**Optional (requires `spidey[langfuse]`):**
-- `from spidey.langfuse_source import LangFusePrompts`
+**Optional (requires `spideyprompt[langfuse]`):**
+- `from spideyprompt.langfuse_source import LangFusePrompts`
 
 Use `PromptRegistry(source, fallback=...)` with any `PromptSource` (implement `keys()` and `get_prompt(key)`). There is no separate `from_mapping` or `load_source`; use `InMemoryPrompts(mapping)` or `FilePrompts(path)` and pass them to `PromptRegistry`.
 

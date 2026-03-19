@@ -3,7 +3,7 @@
 import pytest
 from pydantic import BaseModel
 
-from spidey import (
+from spideyprompt import (
     FilePrompts,
     InMemoryPrompts,
     PromptRegistry,

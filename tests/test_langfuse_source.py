@@ -1,10 +1,10 @@
-"""Tests for LangFusePrompts. User-perspective: use LangFuse as a prompt source (requires spidey[langfuse] for real usage)."""
+"""Tests for LangFusePrompts. User-perspective: use LangFuse as a prompt source (requires spideyprompt[langfuse] for real usage)."""
 
 from unittest.mock import MagicMock
 
-from spidey import PromptRegistry
-from spidey.langfuse_source import LangFusePrompts
-from spidey.prompts import SimplePrompt, SimplePromptTemplate
+from spideyprompt import PromptRegistry
+from spideyprompt.langfuse_source import LangFusePrompts
+from spideyprompt.prompts import SimplePrompt, SimplePromptTemplate
 
 
 def test_langfuse_prompts_keys_returns_prompt_names_from_client():

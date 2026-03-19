@@ -18,7 +18,7 @@ _root = Path(__file__).resolve().parent.parent
 if str(_root / "src") not in sys.path:
     sys.path.insert(0, str(_root / "src"))
 
-from spidey import InMemoryPrompts, PromptRegistry, SimplePrompt
+from spideyprompt import InMemoryPrompts, PromptRegistry, SimplePrompt
 from pydantic import BaseModel
 
 

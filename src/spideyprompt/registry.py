@@ -2,7 +2,7 @@
 from __future__ import annotations
 from typing import Protocol
 
-from spidey.prompts import (
+from spideyprompt.prompts import (
     MessagesPrompt,
     MessagesPromptTemplate,
     RenderedPrompt,

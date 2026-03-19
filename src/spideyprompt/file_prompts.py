@@ -6,7 +6,7 @@ from typing import Any, Type
 
 from pydantic import BaseModel, ConfigDict
 
-from spidey.prompts import Message, MessagesPrompt, SimplePrompt
+from spideyprompt.prompts import Message, MessagesPrompt, SimplePrompt
 
 
 def _parse_frontmatter(raw: str) -> tuple[dict[str, Any], str]:

@@ -1,4 +1,4 @@
-"""LangFuse as a PromptSource. Requires pip install spidey[langfuse]."""
+"""LangFuse as a PromptSource. Requires pip install spideyprompt[langfuse]."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel, ConfigDict
 
-from spidey.prompts import Message, MessagesPrompt, SimplePrompt, SimplePromptTemplate
+from spideyprompt.prompts import Message, MessagesPrompt, SimplePrompt, SimplePromptTemplate
 
 if TYPE_CHECKING:
     pass  # langfuse client type not required at type-check time
@@ -17,7 +17,7 @@ def _import_langfuse():
         from langfuse import Langfuse
         return Langfuse
     except ImportError as e:
-        raise ImportError("Install LangFuse support with: pip install spidey[langfuse]") from e
+        raise ImportError("Install LangFuse support with: pip install spideyprompt[langfuse]") from e
 
 
 class LangFusePromptMetadata(BaseModel):
