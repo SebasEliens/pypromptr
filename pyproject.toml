@@ -3,11 +3,21 @@ requires = ["hatchling>=1.26.0"]
 build-backend = "hatchling.build"
 
 [project]
-name = "spideyprompt"
+name = "pypromptr"
 version = "0.1.0"
 description = "Prompt registry with swappable backends (in-memory, file, LangFuse)."
 readme = "README.md"
+license = { file = "LICENSE" }
+authors = [{ name = "Sebas Eliëns" }]
 requires-python = ">=3.13"
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Intended Audience :: Developers",
+    "Typing :: Typed",
+]
 dependencies = [
     "frontmatter>=1.1.0",
     "pydantic>=2.12.5",
@@ -17,8 +27,8 @@ dependencies = [
 langfuse = ["langfuse>=2.0"]
 
 [project.urls]
-Repository = "https://github.com/SebasEliens/spidey"
-Issues = "https://github.com/SebasEliens/spidey/issues"
+Repository = "https://github.com/SebasEliens/pypromptr"
+Issues = "https://github.com/SebasEliens/pypromptr/issues"
 
 [dependency-groups]
 dev = [
@@ -35,4 +45,4 @@ markers = [
 addopts = "-m 'not benchmark'"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/spideyprompt"]
+packages = ["src/pypromptr"]
