@@ -1,6 +1,6 @@
-"""Spidey: prompt registry with swappable backends."""
+"""pypromptr: prompt registry with swappable backends."""
 
-from spideyprompt.prompts import (
+from pypromptr.prompts import (
     Message,
     MessagesPrompt,
     MessagesPromptTemplate,
@@ -8,8 +8,8 @@ from spideyprompt.prompts import (
     SimplePrompt,
     SimplePromptTemplate,
 )
-from spideyprompt.file_prompts import FilePromptMetadata, FilePrompts, FilePromptsConfig
-from spideyprompt.registry import InMemoryPrompts, PromptRegistry
+from pypromptr.file_prompts import FilePromptMetadata, FilePrompts, FilePromptsConfig
+from pypromptr.registry import InMemoryPrompts, PromptLike, PromptRegistry, PromptSource
 
 __all__ = [
     "FilePromptMetadata",
@@ -19,7 +19,9 @@ __all__ = [
     "Message",
     "MessagesPrompt",
     "MessagesPromptTemplate",
+    "PromptLike",
     "PromptRegistry",
+    "PromptSource",
     "RenderedPrompt",
     "SimplePrompt",
     "SimplePromptTemplate",
