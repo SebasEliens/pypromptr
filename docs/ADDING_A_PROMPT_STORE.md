@@ -14,11 +14,11 @@ Spidey’s registry works with any **PromptSource**: implement `keys()` and `get
 
 - **InMemoryPrompts** — dict of key → prompt; no I/O.
 - **FilePrompts** — directory of markdown files; lazy load on `get_prompt(key)`.
-- **LangFusePrompts** — optional extra; `pip install spideyprompt[langfuse]`. See below.
+- **LangFusePrompts** — optional extra; `pip install pypromptr[langfuse]`. See below.
 
 ## LangFuse (optional)
 
-Install: `pip install spideyprompt[langfuse]`
+Install: `pip install pypromptr[langfuse]`
 
 Configure via environment or explicit arguments:
 
@@ -28,8 +28,8 @@ Configure via environment or explicit arguments:
 Usage:
 
 ```python
-from spideyprompt import PromptRegistry
-from spideyprompt.langfuse_source import LangFusePrompts
+from pypromptr import PromptRegistry
+from pypromptr.langfuse_source import LangFusePrompts
 
 registry = PromptRegistry(LangFusePrompts())
 prompt = registry.get_prompt("my-prompt-name")

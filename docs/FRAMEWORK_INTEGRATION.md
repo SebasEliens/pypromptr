@@ -32,7 +32,7 @@ This doc tracks that intent and outlines what supporting various frameworks woul
 ### What would be required in addition
 
 1. **Keep `Message` minimal and stable:** Only add optional fields (e.g. `name`, `tool_call_id`) if we need them for a first-class adapter; otherwise keep `role` + `content` and let adapters add framework-specific fields.
-2. **Adapters as optional extras:** e.g. `spideyprompt[langchain]`, `spideyprompt[pydantic-ai]`, so core Spidey stays dependency-light.
+2. **Adapters as optional extras:** e.g. `pypromptr[langchain]`, `pypromptr[pydantic-ai]`, so core Spidey stays dependency-light.
 3. **Single canonical shape in core:** Our `RenderedPrompt.messages` stays a list of `Message`. Framework-specific types are produced by adapter functions or methods, not by changing the core model.
 4. **Optional: render mode / format in registry:** If we add a “format” or “target” (e.g. `get(..., format="langchain")`), it would call the appropriate adapter before returning; that’s a design choice once we implement the first adapter.
 

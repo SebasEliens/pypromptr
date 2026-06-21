@@ -117,7 +117,7 @@ Reference: [PRD](PRD.md).
 
 - **LangFusePromptSource(PromptSource):** Implement lazy get by key; at init, list prompt keys (and optionally validate if `validate_at_init` is true). Use LangFuse API for prompts (exact endpoint set to be chosen).
 - **Auth / env:** Support configuration via environment variables or explicit config (API key, host); document in README or docs.
-- **Optional dependency:** LangFuse SDK as extra (e.g. `pip install spideyprompt[langfuse]`); no mandatory dependency on LangFuse.
+- **Optional dependency:** LangFuse SDK as extra (e.g. `pip install pypromptr[langfuse]`); no mandatory dependency on LangFuse.
 - **Documentation:** Short “Adding a prompt store” guide: implement PromptSource with `keys()` and `get_prompt(key)`; list LangSmith, Helicone, generic HTTP as future candidates.
 
 **Deliverables:**
@@ -136,8 +136,8 @@ Reference: [PRD](PRD.md).
 **Tasks:**
 
 - **MarkdownPromptSource:** FilePrompts is the markdown source; there is no separate MarkdownPromptSource to deprecate. Document this in README and IMPLEMENTATION.
-- **Public API:** Finalize exports and document in README (PromptRegistry, InMemoryPrompts, FilePrompts, prompt types; optional LangFusePrompts from `spideyprompt.langfuse_source`). No deprecated `from_mapping` or `load_source` in codebase.
-- **README:** Quick start with `PromptRegistry(source, fallback=...)`, InMemoryPrompts/FilePrompts; lazy loading and typing; optional LangFuse and `spideyprompt[langfuse]`.
+- **Public API:** Finalize exports and document in README (PromptRegistry, InMemoryPrompts, FilePrompts, prompt types; optional LangFusePrompts from `pypromptr.langfuse_source`). No deprecated `from_mapping` or `load_source` in codebase.
+- **README:** Quick start with `PromptRegistry(source, fallback=...)`, InMemoryPrompts/FilePrompts; lazy loading and typing; optional LangFuse and `pypromptr[langfuse]`.
 - **Migration notes:** For users coming from a hypothetical old API: use `PromptRegistry(InMemoryPrompts(mapping))` or `PromptRegistry(FilePrompts(path))`; no separate loaders.
 
 **Deliverables:**
