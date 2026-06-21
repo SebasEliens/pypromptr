@@ -1,12 +1,12 @@
-# Spidey
+# pypromptr
 
 Prompt registry with swappable backends: in-memory dicts, a directory of markdown files, or an external store (e.g. LangFuse). Same API regardless of where prompts live.
 
 ## Quick start
 
 ```python
-from spideyprompt import PromptRegistry, InMemoryPrompts, FilePrompts
-from spideyprompt.prompts import SimplePromptTemplate
+from pypromptr import PromptRegistry, InMemoryPrompts, FilePrompts
+from pypromptr.prompts import SimplePromptTemplate
 
 # In-memory
 registry = PromptRegistry(InMemoryPrompts({
@@ -42,13 +42,13 @@ combined = app_prompts + lib_prompts
 |--------|----------|
 | **InMemoryPrompts** | Dict of key → prompt; no I/O. |
 | **FilePrompts** | Directory of markdown files; keys from filenames; lazy load on `get_prompt(key)`. |
-| **LangFusePrompts** | Optional: `pip install spideyprompt[langfuse]`, then `from spideyprompt.langfuse_source import LangFusePrompts`. |
+| **LangFusePrompts** | Optional: `pip install pypromptr[langfuse]`, then `from pypromptr.langfuse_source import LangFusePrompts`. |
 
-FilePrompts is the built-in markdown source (frontmatter + body; no separate “MarkdownPromptSource”). See [ADDING_A_PROMPT_STORE.md](docs/ADDING_A_PROMPT_STORE.md) to implement your own store.
+FilePrompts is the built-in markdown source (frontmatter + body; no separate "MarkdownPromptSource"). See [ADDING_A_PROMPT_STORE.md](docs/ADDING_A_PROMPT_STORE.md) to implement your own store.
 
 ## Lazy loading and init
 
-- **Keys** are resolved at init from the source’s `keys()` (no full prompt bodies loaded for file/remote sources).
+- **Keys** are resolved at init from the source's `keys()` (no full prompt bodies loaded for file/remote sources).
 - **Bodies** are loaded on demand when you call `get_prompt(key)` or `get(key, ...)`.
 - **validate_at_init**: When `True`, the registry can optionally validate that each key is fetchable at startup; when `False`, only the key set is built. See [LAZY_LOADING.md](docs/LAZY_LOADING.md) and [INIT_VALIDATION.md](docs/INIT_VALIDATION.md).
 
@@ -59,14 +59,14 @@ Prompts carry optional Pydantic metadata. The registry is designed so that `get_
 ## Optional: LangFuse
 
 ```bash
-pip install spideyprompt[langfuse]
+pip install pypromptr[langfuse]
 ```
 
 Configure via environment (`LANGFUSE_SECRET_KEY`, `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_HOST`) or pass a client:
 
 ```python
-from spideyprompt import PromptRegistry
-from spideyprompt.langfuse_source import LangFusePrompts
+from pypromptr import PromptRegistry
+from pypromptr.langfuse_source import LangFusePrompts
 
 registry = PromptRegistry(LangFusePrompts())
 rendered = registry.get("my-prompt-name", **variables)
@@ -76,18 +76,19 @@ See [ADDING_A_PROMPT_STORE.md](docs/ADDING_A_PROMPT_STORE.md) for env vars and a
 
 ## Public API
 
-**From `spideyprompt`:**
+**From `pypromptr`:**
 - `PromptRegistry` — main entry point.
 - `InMemoryPrompts`, `FilePrompts`, `FilePromptsConfig`, `FilePromptMetadata`.
 - `SimplePrompt`, `SimplePromptTemplate`, `MessagesPrompt`, `MessagesPromptTemplate`, `Message`, `RenderedPrompt`.
 
-**Optional (requires `spideyprompt[langfuse]`):**
-- `from spideyprompt.langfuse_source import LangFusePrompts`
+**Optional (requires `pypromptr[langfuse]`):**
+- `from pypromptr.langfuse_source import LangFusePrompts`
 
 Use `PromptRegistry(source, fallback=...)` with any `PromptSource` (implement `keys()` and `get_prompt(key)`). There is no separate `from_mapping` or `load_source`; use `InMemoryPrompts(mapping)` or `FilePrompts(path)` and pass them to `PromptRegistry`.
 
 ## Docs
 
+- [ROADMAP](docs/ROADMAP.md) — planned features for wider adoption (post–first PyPI release).
 - [PRD](docs/PRD.md) — goals and user stories.
 - [IMPLEMENTATION](docs/IMPLEMENTATION.md) — phased roadmap.
 - [ADDING_A_PROMPT_STORE](docs/ADDING_A_PROMPT_STORE.md) — implement a custom store.
