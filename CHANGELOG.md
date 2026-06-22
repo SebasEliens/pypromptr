@@ -7,6 +7,13 @@ This project uses [semantic versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- `PromptRegistry.aget_prompt(key)` and `PromptRegistry.aget(key, **kwargs)` — async versions of `get_prompt`/`get`; blocking source I/O runs in a thread pool via `asyncio.to_thread`.
+- Module-level default registry: `register_prompt`, `register_prompt_source`, `get_prompt`, `get`, `aget_prompt`, `aget`, `clear`.
+
+### Fixed
+- `FilePrompts.get_prompt()` had a TOCTOU race (existence check then read); replaced with direct `read_text()` converting `FileNotFoundError` to `KeyError`.
+
 ## [0.1.0] — 2026-06-21
 
 ### Added
