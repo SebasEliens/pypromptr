@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "Prompt registry with swappable backends (in-memory, file, LangFuse)."
 readme = "README.md"
 license = { file = "LICENSE" }
-authors = [{ name = "Sebas Eliëns" }]
+authors = [{ name = "Sebas Eliëns", email = "sebas.eliens@gmail.com" }]
 requires-python = ">=3.13"
 classifiers = [
     "License :: OSI Approved :: MIT License",
@@ -17,6 +17,7 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Intended Audience :: Developers",
     "Typing :: Typed",
+    "Development Status :: 3 - Alpha",
 ]
 dependencies = [
     "frontmatter>=1.1.0",
@@ -27,6 +28,7 @@ dependencies = [
 langfuse = ["langfuse>=2.0"]
 
 [project.urls]
+Homepage = "https://github.com/SebasEliens/pypromptr"
 Repository = "https://github.com/SebasEliens/pypromptr"
 Issues = "https://github.com/SebasEliens/pypromptr/issues"
 

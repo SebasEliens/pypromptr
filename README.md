@@ -1,6 +1,17 @@
 # pypromptr
 
+[![PyPI](https://img.shields.io/pypi/v/pypromptr)](https://pypi.org/project/pypromptr/)
+
 Prompt registry with swappable backends: in-memory dicts, a directory of markdown files, or an external store (e.g. LangFuse). Same API regardless of where prompts live.
+
+## Install
+
+```bash
+pip install pypromptr
+
+# with LangFuse support:
+pip install pypromptr[langfuse]
+```
 
 ## Quick start
 
