@@ -31,8 +31,8 @@ uv run pytest tests/benchmark_registry.py -m benchmark --benchmark-only --benchm
 | Benchmark | Setup | What it measures |
 |-----------|--------|------------------|
 | **test_get_prompt_in_memory** | `PromptRegistry(InMemoryPrompts({...}))` with one key | Baseline: dict lookup + registry try/return. |
-| **test_get_prompt_with_fallback_hit** | Registry with source + fallback; key in source | Overhead of try/source.get_prompt (no KeyError). |
-| **test_get_prompt_with_fallback_miss** | Same; key only in fallback | Overhead of try → KeyError → fallback.get_prompt. |
+| **test_get_prompt_with_fallback_hit** | `PromptRegistry(source_a, source_b)`; key in first source | Overhead of try/source.get_prompt (no KeyError). |
+| **test_get_prompt_with_fallback_miss** | Same; key only in second source | Overhead of try → KeyError → next source's get_prompt. |
 | **test_get_prompt_combined_registry** | `first + second`; key in first | Overhead of chained registry (source is another registry). |
 | **test_get_prompt_file_prompts** | `PromptRegistry(FilePrompts(tmp_path))` with one file | FilePrompts: lazy load on get_prompt (includes disk I/O and parsing). |
 

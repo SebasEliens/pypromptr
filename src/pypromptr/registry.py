@@ -42,43 +42,37 @@ class InMemoryPrompts:
 
 
 class PromptRegistry:
-    """Registry that resolves prompts from a primary source and optional fallback."""
+    """Registry that resolves prompts from one or more sources tried in order (first wins)."""
 
     def __init__(
         self,
-        source: PromptSource,
-        fallback: PromptSource | None = None,
-        *,
+        *sources: PromptSource,
         validate_at_init: bool = False,
     ) -> None:
-        # Note: __init__ calls source.keys() synchronously. For remote sources (e.g. LangFuse)
-        # inside an async context, construct via:
+        # Note: __init__ calls source.keys() synchronously for each source. For remote sources
+        # (e.g. LangFuse) inside an async context, construct via:
         #   registry = await asyncio.to_thread(PromptRegistry, source)
-        self._source = source
-        self._fallback = fallback
-        # Build key set at init from source and fallback keys only (no prompt bodies loaded).
-        self._key_set = sorted(
-            set(source.keys()) | (set(fallback.keys()) if fallback else set())
-        )
+        self._sources = list(sources)
+        self._key_set = sorted(set().union(*(set(s.keys()) for s in sources)))
         if validate_at_init:
             for key in self._key_set:
                 self.get_prompt(key)
 
     def keys(self) -> list[str]:
-        """Return the union of keys from source and fallback (built at init)."""
+        """Return the union of keys across all sources (built at init)."""
         return self._key_set
 
     def __add__(self, other: PromptRegistry) -> PromptRegistry:
-        """Combine two registries; resolution is first-wins (self then other)."""
-        return PromptRegistry(source=self, fallback=other)
+        """Combine two registries; sources are merged and tried in order (self first)."""
+        return PromptRegistry(*self._sources, *other._sources)
 
     def get_prompt(self, key: str) -> PromptLike:
-        try:
-            return self._source.get_prompt(key)
-        except KeyError:
-            if self._fallback is None:
-                raise
-            return self._fallback.get_prompt(key)
+        for source in self._sources:
+            try:
+                return source.get_prompt(key)
+            except KeyError:
+                continue
+        raise KeyError(key)
 
     def get(self, key: str, **kwargs: object) -> RenderedPrompt:
         """Return the prompt for key, rendered with the given template variables."""

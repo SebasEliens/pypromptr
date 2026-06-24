@@ -27,8 +27,8 @@ registry = PromptRegistry(InMemoryPrompts({
 # Or from a directory of markdown files (lazy load on access)
 registry = PromptRegistry(FilePrompts("prompts/"))
 
-# Optional fallback when key is missing in primary source
-registry = PromptRegistry(FilePrompts("prompts/"), fallback=InMemoryPrompts(defaults))
+# Multiple sources tried in order — first match wins
+registry = PromptRegistry(FilePrompts("prompts/"), InMemoryPrompts(defaults))
 ```
 
 **Access:**
@@ -55,17 +55,17 @@ combined = app_prompts + lib_prompts
 | **FilePrompts** | Directory of markdown files; keys from filenames; lazy load on `get_prompt(key)`. |
 | **LangFusePrompts** | Optional: `pip install pypromptr[langfuse]`, then `from pypromptr.langfuse_source import LangFusePrompts`. |
 
-FilePrompts is the built-in markdown source (frontmatter + body; no separate "MarkdownPromptSource"). See [ADDING_A_PROMPT_STORE.md](docs/ADDING_A_PROMPT_STORE.md) to implement your own store.
+FilePrompts is the built-in markdown source (frontmatter + body; no separate "MarkdownPromptSource"). Implement `keys()` and `get_prompt(key)` to create your own store.
 
 ## Lazy loading and init
 
 - **Keys** are resolved at init from the source's `keys()` (no full prompt bodies loaded for file/remote sources).
 - **Bodies** are loaded on demand when you call `get_prompt(key)` or `get(key, ...)`.
-- **validate_at_init**: When `True`, the registry can optionally validate that each key is fetchable at startup; when `False`, only the key set is built. See [LAZY_LOADING.md](docs/LAZY_LOADING.md) and [INIT_VALIDATION.md](docs/INIT_VALIDATION.md).
+- **validate_at_init**: When `True`, the registry can optionally validate that each key is fetchable at startup; when `False`, only the key set is built.
 
 ## Typing and metadata
 
-Prompts carry optional Pydantic metadata. The registry is designed so that `get_prompt("key")` can be typed per key. See [TYPING_DESIGN.md](docs/TYPING_DESIGN.md).
+Prompts carry optional Pydantic metadata. The registry is designed so that `get_prompt("key")` can be typed per key.
 
 ## Optional: LangFuse
 
@@ -83,7 +83,7 @@ registry = PromptRegistry(LangFusePrompts())
 rendered = registry.get("my-prompt-name", **variables)
 ```
 
-See [ADDING_A_PROMPT_STORE.md](docs/ADDING_A_PROMPT_STORE.md) for env vars and alternatives (LangSmith, Helicone, generic HTTP).
+Configure env vars or pass a custom client for alternatives (LangSmith, Helicone, generic HTTP).
 
 ## Public API
 
@@ -95,12 +95,9 @@ See [ADDING_A_PROMPT_STORE.md](docs/ADDING_A_PROMPT_STORE.md) for env vars and a
 **Optional (requires `pypromptr[langfuse]`):**
 - `from pypromptr.langfuse_source import LangFusePrompts`
 
-Use `PromptRegistry(source, fallback=...)` with any `PromptSource` (implement `keys()` and `get_prompt(key)`). There is no separate `from_mapping` or `load_source`; use `InMemoryPrompts(mapping)` or `FilePrompts(path)` and pass them to `PromptRegistry`.
+Use `PromptRegistry(*sources)` with any `PromptSource` (implement `keys()` and `get_prompt(key)`). There is no separate `from_mapping` or `load_source`; use `InMemoryPrompts(mapping)` or `FilePrompts(path)` and pass them to `PromptRegistry`.
 
-## Docs
+## Feedback & contributing
 
-- [ROADMAP](docs/ROADMAP.md) — planned features for wider adoption (post–first PyPI release).
-- [PRD](docs/PRD.md) — goals and user stories.
-- [IMPLEMENTATION](docs/IMPLEMENTATION.md) — phased roadmap.
-- [ADDING_A_PROMPT_STORE](docs/ADDING_A_PROMPT_STORE.md) — implement a custom store.
-- [LAZY_LOADING](docs/LAZY_LOADING.md), [INIT_VALIDATION](docs/INIT_VALIDATION.md), [TYPING_DESIGN](docs/TYPING_DESIGN.md).
+Found a bug or have a question? [Open an issue](https://github.com/SebasEliens/pypromptr/issues).
+Ideas and feature requests welcome too.

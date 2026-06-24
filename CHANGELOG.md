@@ -10,7 +10,7 @@ This project uses [semantic versioning](https://semver.org/).
 ## [0.1.0] — 2026-06-21
 
 ### Added
-- `PromptRegistry` — single entry point with optional fallback and `+` combination.
+- `PromptRegistry` — single entry point; accepts multiple sources tried in order (first wins), with `+` for combining registries.
 - `InMemoryPrompts` — dict-backed source; no I/O.
 - `FilePrompts` — directory of markdown files; keys from filenames; lazy load on `get_prompt(key)`.
 - `FilePromptsConfig` — configurable extension, parsing strategy, and message delimiters.

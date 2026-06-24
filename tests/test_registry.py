@@ -17,16 +17,16 @@ class MinimalMetadata(BaseModel):
     pass
 
 
-def test_registry_keys_returns_union_of_source_and_fallback():
-    """I can list all keys from a registry without loading prompt bodies; source and fallback keys are combined."""
-    source = InMemoryPrompts({
+def test_registry_keys_returns_union_of_all_sources():
+    """I can list all keys from a registry without loading prompt bodies; keys from all sources are combined."""
+    source_a = InMemoryPrompts({
         "a": SimplePrompt(metadata=MinimalMetadata(), content=""),
         "b": SimplePrompt(metadata=MinimalMetadata(), content=""),
     })
-    fallback = InMemoryPrompts({
+    source_b = InMemoryPrompts({
         "c": SimplePrompt(metadata=MinimalMetadata(), content=""),
     })
-    registry = PromptRegistry(source, fallback=fallback)
+    registry = PromptRegistry(source_a, source_b)
     assert set(registry.keys()) == {"a", "b", "c"}
 
 
@@ -51,26 +51,22 @@ def test_registry_get_renders_prompt_with_variables():
     assert rendered.content == "Hello, Alice!"
 
 
-def test_registry_fallback_when_key_missing_in_source():
-    """I use a registry with a fallback; when a key is only in the fallback, I get that prompt."""
-    only_in_source = SimplePrompt(
-        metadata=MinimalMetadata(), content="From source"
-    )
-    only_in_fallback = SimplePrompt(
-        metadata=MinimalMetadata(), content="From fallback"
-    )
-    source = InMemoryPrompts({"a": only_in_source})
-    fallback = InMemoryPrompts({"b": only_in_fallback})
-    registry = PromptRegistry(source, fallback=fallback)
-    assert registry.get_prompt("a") is only_in_source
-    assert registry.get_prompt("b") is only_in_fallback
+def test_registry_falls_through_to_next_source_when_key_missing():
+    """When a key is missing in the first source, the next source is tried."""
+    only_in_first = SimplePrompt(metadata=MinimalMetadata(), content="From first")
+    only_in_second = SimplePrompt(metadata=MinimalMetadata(), content="From second")
+    first = InMemoryPrompts({"a": only_in_first})
+    second = InMemoryPrompts({"b": only_in_second})
+    registry = PromptRegistry(first, second)
+    assert registry.get_prompt("a") is only_in_first
+    assert registry.get_prompt("b") is only_in_second
 
 
-def test_registry_raises_key_error_when_key_missing_in_both():
-    """When a key is in neither source nor fallback, I get KeyError."""
-    source = InMemoryPrompts({"a": SimplePrompt(metadata=MinimalMetadata(), content="")})
-    fallback = InMemoryPrompts({"b": SimplePrompt(metadata=MinimalMetadata(), content="")})
-    registry = PromptRegistry(source, fallback=fallback)
+def test_registry_raises_key_error_when_key_missing_in_all_sources():
+    """When a key is in none of the sources, KeyError is raised."""
+    source_a = InMemoryPrompts({"a": SimplePrompt(metadata=MinimalMetadata(), content="")})
+    source_b = InMemoryPrompts({"b": SimplePrompt(metadata=MinimalMetadata(), content="")})
+    registry = PromptRegistry(source_a, source_b)
     with pytest.raises(KeyError, match="c"):
         registry.get_prompt("c")
 
@@ -94,6 +90,17 @@ def test_combined_registry_first_wins_on_overlapping_key():
     second = PromptRegistry(InMemoryPrompts({"shared": prompt_second}))
     combined = first + second
     assert combined.get_prompt("shared") is prompt_first
+
+
+def test_registry_three_sources_tried_in_order():
+    """With three sources, resolution falls through each in order until found."""
+    prompt_c = SimplePrompt(metadata=MinimalMetadata(), content="From third")
+    registry = PromptRegistry(
+        InMemoryPrompts({"a": SimplePrompt(metadata=MinimalMetadata(), content="")}),
+        InMemoryPrompts({"b": SimplePrompt(metadata=MinimalMetadata(), content="")}),
+        InMemoryPrompts({"c": prompt_c}),
+    )
+    assert registry.get_prompt("c") is prompt_c
 
 
 def test_registry_validate_at_init_fetches_each_key():
@@ -195,18 +202,18 @@ def test_registry_aget_renders_prompt_with_template_variables():
 
 
 def test_registry_aget_prompt_raises_key_error_for_missing_key():
-    """aget_prompt raises KeyError when the key is in neither source nor fallback."""
+    """aget_prompt raises KeyError when the key is in none of the sources."""
     registry = PromptRegistry(InMemoryPrompts({"a": SimplePrompt(metadata=MinimalMetadata(), content="")}))
     with pytest.raises(KeyError, match="missing"):
         asyncio.run(registry.aget_prompt("missing"))
 
 
-def test_registry_aget_prompt_uses_fallback():
-    """aget_prompt falls back to the fallback source when the key is missing in the primary source."""
-    fallback_prompt = SimplePrompt(metadata=MinimalMetadata(), content="From fallback")
-    source = InMemoryPrompts({"a": SimplePrompt(metadata=MinimalMetadata(), content="")})
-    fallback = InMemoryPrompts({"b": fallback_prompt})
-    registry = PromptRegistry(source, fallback=fallback)
+def test_registry_aget_prompt_falls_through_to_next_source():
+    """aget_prompt falls through to the next source when the key is missing in the first."""
+    fallback_prompt = SimplePrompt(metadata=MinimalMetadata(), content="From second")
+    first = InMemoryPrompts({"a": SimplePrompt(metadata=MinimalMetadata(), content="")})
+    second = InMemoryPrompts({"b": fallback_prompt})
+    registry = PromptRegistry(first, second)
     result = asyncio.run(registry.aget_prompt("b"))
     assert result is fallback_prompt
 

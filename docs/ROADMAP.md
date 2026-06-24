@@ -59,7 +59,7 @@ These changes help strangers on PyPI adopt the library without committing to a l
 
 ### B3. Composition helpers
 
-- **`ChainSource`** (name TBD): ordered list of sources, first hit wins—generalizes `fallback` beyond two layers without nested `PromptRegistry` only.
+- ~~**`ChainSource`**~~: implemented — `PromptRegistry` now accepts `*sources` tried in order, first wins.
 - **Prefix / namespace:** map `PromptSource` keys under a prefix for large monorepos (`lib.*` vs `app.*`).
 
 ---

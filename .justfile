@@ -1,3 +1,11 @@
+# Publish to TestPyPI (for local verification before real release)
+publish-test:
+    uv publish --publish-url https://test.pypi.org/legacy/ --token $(grep -A3 '\[testpypi\]' ~/.pypirc | grep password | awk '{print $3}')
+
+# Publish to PyPI
+publish:
+    uv publish --token $(grep -A3 '\[pypi\]' ~/.pypirc | grep password | awk '{print $3}')
+
 test:
     uv run pytest
 
