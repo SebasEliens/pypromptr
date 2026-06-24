@@ -37,6 +37,12 @@ class PromptSource(Protocol):
     uses it to build the known key set at init and to support validate_at_init.
     Sources without keys() are skipped for enumeration but still participate
     fully in resolution.
+
+    Optional: aget_prompt(key: str) -> PromptLike  (async)
+    -------------------------------------------------------
+    Implement aget_prompt for native async I/O (aiohttp, asyncpg, etc.).
+    When present, PromptRegistry.aget_prompt awaits it directly instead of
+    wrapping get_prompt in a thread pool. The same KeyError contract applies.
     """
 
     def get_prompt(self, key: str) -> PromptLike: ...
@@ -97,8 +103,19 @@ class PromptRegistry:
         return self.get_prompt(key).render(**kwargs)
 
     async def aget_prompt(self, key: str) -> PromptLike:
-        """Async version of get_prompt; runs blocking source I/O in a thread pool."""
-        return await asyncio.to_thread(self.get_prompt, key)
+        """Resolve key across sources using native async where available.
+
+        Sources that implement aget_prompt are awaited directly. Sources
+        without it have their get_prompt run in a thread pool.
+        """
+        for source in self._sources:
+            try:
+                if hasattr(source, "aget_prompt"):
+                    return await source.aget_prompt(key)
+                return await asyncio.to_thread(source.get_prompt, key)
+            except KeyError:
+                continue
+        raise KeyError(key)
 
     async def aget(self, key: str, **kwargs: object) -> RenderedPrompt:
         """Async version of get; runs blocking source I/O in a thread pool."""

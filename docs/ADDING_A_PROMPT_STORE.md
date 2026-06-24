@@ -21,6 +21,10 @@ def get_prompt(self, key: str) -> PromptLike:
 
 Other errors (network failures, parse errors, auth failures) may propagate freely.
 
+### Optional: `async aget_prompt(key: str) -> PromptLike`
+
+Implement for native async I/O (aiohttp, asyncpg, etc.). When present, `PromptRegistry.aget_prompt` awaits it directly instead of wrapping `get_prompt` in a thread pool. The same KeyError contract applies: raise `KeyError(key)` when the key is not found, let other errors propagate.
+
 ### Optional: `keys() -> list[str]`
 
 Return the set of prompt keys **without** loading prompt bodies. When present, the registry calls this at init to build the known key set (used by `registry.keys()` and `validate_at_init`). Sources without `keys()` are skipped for enumeration but still participate fully in resolution.

@@ -8,6 +8,7 @@ from pypromptr.prompts import (
     SimplePrompt,
     SimplePromptTemplate,
 )
+from pypromptr.callable_source import CallablePromptSource
 from pypromptr.file_prompts import FilePromptMetadata, FilePrompts, FilePromptsConfig
 from pypromptr.registry import InMemoryPrompts, PromptLike, PromptRegistry, PromptSource
 from pypromptr._default_registry import _registry
@@ -49,6 +50,7 @@ def clear() -> None:
 
 
 __all__ = [
+    "CallablePromptSource",
     "FilePromptMetadata",
     "FilePrompts",
     "FilePromptsConfig",
