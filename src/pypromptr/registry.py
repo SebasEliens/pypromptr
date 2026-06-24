@@ -20,9 +20,25 @@ PromptLike = (
 
 
 class PromptSource(Protocol):
-    """Protocol for prompt backends: list keys and fetch prompt by key."""
+    """Protocol for prompt backends. Only get_prompt is required.
 
-    def keys(self) -> list[str]: ...
+    KeyError contract
+    -----------------
+    get_prompt must raise ``KeyError(key)`` when the key does not exist in
+    this source. The registry catches KeyError to fall through to the next
+    source in the chain. Raising any other exception for a missing key
+    (e.g. FileNotFoundError, ValueError) will break the chain and propagate
+    to the caller — convert those to KeyError inside your implementation.
+    Other errors (network failures, parse errors, etc.) may propagate freely.
+
+    Optional: keys() -> list[str]
+    ------------------------------
+    Implement keys() to support key enumeration. When present, PromptRegistry
+    uses it to build the known key set at init and to support validate_at_init.
+    Sources without keys() are skipped for enumeration but still participate
+    fully in resolution.
+    """
+
     def get_prompt(self, key: str) -> PromptLike: ...
 
 
@@ -53,7 +69,9 @@ class PromptRegistry:
         # (e.g. LangFuse) inside an async context, construct via:
         #   registry = await asyncio.to_thread(PromptRegistry, source)
         self._sources = list(sources)
-        self._key_set = sorted(set().union(*(set(s.keys()) for s in sources)))
+        self._key_set = sorted(
+            set().union(*(set(s.keys()) for s in sources if hasattr(s, "keys")))
+        )
         if validate_at_init:
             for key in self._key_set:
                 self.get_prompt(key)

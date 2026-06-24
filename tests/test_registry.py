@@ -6,6 +6,7 @@ from pydantic import BaseModel
 
 from pypromptr import (
     InMemoryPrompts,
+    PromptLike,
     PromptRegistry,
     RenderedPrompt,
     SimplePrompt,
@@ -101,6 +102,38 @@ def test_registry_three_sources_tried_in_order():
         InMemoryPrompts({"c": prompt_c}),
     )
     assert registry.get_prompt("c") is prompt_c
+
+
+def test_registry_source_without_keys_still_resolves():
+    """A source without keys() participates in resolution but contributes nothing to registry.keys()."""
+    prompt = SimplePrompt(metadata=MinimalMetadata(), content="From keyless")
+
+    class KeylessSource:
+        def get_prompt(self, key: str) -> PromptLike:
+            if key == "x":
+                return prompt
+            raise KeyError(key)
+
+    registry = PromptRegistry(KeylessSource())
+    assert registry.get_prompt("x") is prompt
+    assert registry.keys() == []
+
+
+def test_registry_mixed_enumerable_and_keyless_sources():
+    """Keys from enumerable sources are listed; keyless sources still resolve."""
+    prompt_a = SimplePrompt(metadata=MinimalMetadata(), content="A")
+    prompt_b = SimplePrompt(metadata=MinimalMetadata(), content="B")
+
+    class KeylessSource:
+        def get_prompt(self, key: str) -> PromptLike:
+            if key == "b":
+                return prompt_b
+            raise KeyError(key)
+
+    registry = PromptRegistry(InMemoryPrompts({"a": prompt_a}), KeylessSource())
+    assert registry.keys() == ["a"]  # only enumerable source contributes
+    assert registry.get_prompt("a") is prompt_a
+    assert registry.get_prompt("b") is prompt_b
 
 
 def test_registry_validate_at_init_fetches_each_key():

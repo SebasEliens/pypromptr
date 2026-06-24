@@ -1,14 +1,31 @@
 # Adding a prompt store
 
-Spidey’s registry works with any **PromptSource**: implement `keys()` and `get_prompt(key)` and pass it to `PromptRegistry(source, ...)`.
+pypromptr's registry works with any **PromptSource**: implement `get_prompt(key)` and pass it to `PromptRegistry(source, ...)`.
 
 ## Contract
 
-- **`keys() -> list[str]`**  
-  Return the set of prompt keys **without** loading prompt bodies. The registry calls this at init to build the key set. See [LAZY_LOADING.md](LAZY_LOADING.md).
+### Required: `get_prompt(key: str) -> PromptLike`
 
-- **`get_prompt(key: str)`**  
-  Load and return the prompt for that key. Called only when the user (or registry) requests that key. Return a Spidey prompt type: `SimplePrompt`, `SimplePromptTemplate`, `MessagesPrompt`, or `MessagesPromptTemplate`.
+Load and return the prompt for `key`. Return one of the pypromptr prompt types: `SimplePrompt`, `SimplePromptTemplate`, `MessagesPrompt`, or `MessagesPromptTemplate`.
+
+**KeyError contract:** raise `KeyError(key)` when the key does not exist in your source. The registry catches `KeyError` to fall through to the next source in the chain. If your backend raises a different exception for missing keys (e.g. `FileNotFoundError`, `ValueError`), convert it to `KeyError` — otherwise the chain breaks and the error propagates to the caller.
+
+```python
+def get_prompt(self, key: str) -> PromptLike:
+    try:
+        data = self._backend.fetch(key)
+    except BackendNotFoundError:
+        raise KeyError(key)  # must be KeyError
+    return SimplePrompt(content=data["content"], metadata={})
+```
+
+Other errors (network failures, parse errors, auth failures) may propagate freely.
+
+### Optional: `keys() -> list[str]`
+
+Return the set of prompt keys **without** loading prompt bodies. When present, the registry calls this at init to build the known key set (used by `registry.keys()` and `validate_at_init`). Sources without `keys()` are skipped for enumeration but still participate fully in resolution.
+
+Omit `keys()` if listing all prompts is expensive or unsupported by your backend (e.g. a remote store with no list API).
 
 ## Built-in sources
 
@@ -40,6 +57,4 @@ rendered = registry.get("my-prompt-name", **variables)
 
 - **LangSmith** — prompt management and versioning; different API and auth.
 - **Helicone** — observability and prompt management.
-- **Generic HTTP** — implement a small wrapper that calls your REST API in `keys()` and `get_prompt(key)` and maps responses to Spidey prompt types.
-
-Same contract: list keys at init, fetch by key on demand, return Spidey prompt instances.
+- **Generic HTTP** — implement a small wrapper that calls your REST API in `get_prompt(key)` and maps responses to pypromptr prompt types.
