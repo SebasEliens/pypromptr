@@ -1,48 +1,12 @@
 """FilePrompts: PromptSource that loads prompts from a directory of files (lazy)."""
 
-import re
 from pathlib import Path
-from typing import Any, Type
+from typing import Type
 
 from pydantic import BaseModel, ConfigDict
 
-from pypromptr.prompts import Message, MessagesPrompt, SimplePrompt
-
-
-def _parse_frontmatter(raw: str) -> tuple[dict[str, Any], str]:
-    """Split YAML frontmatter and body. Returns (metadata_dict, body). Handles python-frontmatter and frontmatter 3.x."""
-    try:
-        import frontmatter as fm
-
-        if hasattr(fm, "loads"):
-            post = fm.loads(raw)
-            return (dict(post.metadata), post.content)
-        parser = fm.Frontmatter()
-        out = parser.read(raw)
-        attrs = out.get("attributes") or {}
-        body = out.get("body", "")
-        if not body.strip() and not attrs:
-            body = raw
-        return (attrs, body)
-    except Exception:
-        return ({}, raw)
-
-
-def _parse_role_sections(body: str) -> list[Message]:
-    """Parse ## role\\ncontent blocks. Returns [] if no sections."""
-    if not body.startswith("## ") and "\n## " not in body:
-        return []
-    text = body[3:] if body.startswith("## ") else body
-    result: list[Message] = []
-    for part in re.split(r"\n## ", text):
-        part = part.strip()
-        if not part:
-            continue
-        first_newline = part.find("\n")
-        role, content = (part, "") if first_newline == -1 else (part[:first_newline].strip(), part[first_newline + 1 :].strip())
-        if role in ("system", "user", "assistant"):
-            result.append(Message(role=role, content=content))
-    return result
+from pypromptr.prompts import MessagesPrompt, SimplePrompt
+from pypromptr._parsing import _parse_frontmatter, _parse_role_sections
 
 
 class FilePromptMetadata(BaseModel):
