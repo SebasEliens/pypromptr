@@ -29,17 +29,17 @@ def test_get_prompt_with_fallback_hit(benchmark):
     prompt = SimplePrompt(metadata=MinimalMetadata(), content="From source")
     source = InMemoryPrompts({"key": prompt})
     fallback = InMemoryPrompts({"other": SimplePrompt(metadata=MinimalMetadata(), content="")})
-    registry = PromptRegistry(source, fallback=fallback)
+    registry = PromptRegistry(source, fallback)
     benchmark(registry.get_prompt, "key")
 
 
 @pytest.mark.benchmark
 def test_get_prompt_with_fallback_miss(benchmark):
-    """Overhead of try → KeyError → fallback.get_prompt when key is only in fallback."""
+    """Overhead of try → KeyError → next source's get_prompt when key is only in second source."""
     prompt = SimplePrompt(metadata=MinimalMetadata(), content="From fallback")
     source = InMemoryPrompts({"other": SimplePrompt(metadata=MinimalMetadata(), content="")})
     fallback = InMemoryPrompts({"key": prompt})
-    registry = PromptRegistry(source, fallback=fallback)
+    registry = PromptRegistry(source, fallback)
     benchmark(registry.get_prompt, "key")
 
 
