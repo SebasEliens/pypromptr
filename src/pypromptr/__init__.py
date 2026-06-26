@@ -8,8 +8,8 @@ from pypromptr.prompts import (
     SimplePrompt,
     SimplePromptTemplate,
 )
-from pypromptr.callable_source import CallablePromptSource
-from pypromptr.file_prompts import FilePromptMetadata, FilePrompts, FilePromptsConfig
+from pypromptr.sources.callable import CallablePromptSource
+from pypromptr.sources.file import FilePromptMetadata, FilePrompts, FilePromptsConfig
 from pypromptr.registry import InMemoryPrompts, PromptLike, PromptRegistry, PromptSource
 from pypromptr._default_registry import _registry
 

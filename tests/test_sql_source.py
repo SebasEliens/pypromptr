@@ -13,7 +13,7 @@ except ImportError:
 
 pytestmark = pytest.mark.skipif(not HAS_SQLALCHEMY, reason="sqlalchemy not installed")
 
-from pypromptr.sql_source import SqlPrompts
+from pypromptr.sources.sql import SqlPrompts
 from pypromptr.prompts import SimplePrompt, SimplePromptTemplate
 
 

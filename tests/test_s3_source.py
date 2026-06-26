@@ -2,7 +2,7 @@
 
 import pytest
 
-from pypromptr.s3_source import FakeBucketAdapter, S3Prompts
+from pypromptr.sources.s3 import FakeBucketAdapter, S3Prompts
 from pypromptr.prompts import MessagesPrompt, SimplePrompt
 
 

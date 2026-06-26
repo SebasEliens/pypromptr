@@ -2,7 +2,7 @@
 
 import pytest
 
-from pypromptr.http_source import FakeHttpAdapter, HttpPrompt, HttpPrompts
+from pypromptr.sources.http import FakeHttpAdapter, HttpPrompt, HttpPrompts
 from pypromptr.prompts import MessagesPrompt, SimplePrompt
 
 

@@ -3,7 +3,7 @@
 from unittest.mock import MagicMock
 
 from pypromptr import PromptRegistry
-from pypromptr.langfuse_source import LangFusePrompts
+from pypromptr.sources.langfuse import LangFusePrompts
 from pypromptr.prompts import SimplePrompt, SimplePromptTemplate
 
 

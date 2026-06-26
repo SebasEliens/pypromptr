@@ -2,7 +2,7 @@
 
 import pytest
 
-from pypromptr.git_source import FakeGitAdapter, GitRepoPrompts
+from pypromptr.sources.git import FakeGitAdapter, GitRepoPrompts
 from pypromptr.prompts import MessagesPrompt, SimplePrompt
 
 
