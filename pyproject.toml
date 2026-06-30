@@ -40,7 +40,11 @@ Issues = "https://github.com/SebasEliens/pypromptr/issues"
 dev = [
     "pytest>=9.0.2",
     "pytest-benchmark>=4.0.0",
+]
+benchmark = [
+    {include-group = "dev"},
     "gitpython>=3.1",
+    "sqlalchemy>=2.0",
 ]
 
 
