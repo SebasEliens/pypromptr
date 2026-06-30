@@ -71,9 +71,69 @@ combined = app_prompts + lib_prompts
 |--------|----------|
 | **InMemoryPrompts** | Dict of key → prompt; no I/O. |
 | **FilePrompts** | Directory of markdown files; keys from filenames; lazy load on `get_prompt(key)`. |
+| **CallablePromptSource** | Dict of callables invoked on demand — wrap any custom fetch logic. |
 | **LangFusePrompts** | Optional: `pip install pypromptr[langfuse]`, then `from pypromptr.langfuse_source import LangFusePrompts`. |
 
-FilePrompts is the built-in markdown source (frontmatter + body; no separate "MarkdownPromptSource"). Implement `keys()` and `get_prompt(key)` to create your own store.
+### CallablePromptSource
+
+Use `CallablePromptSource` to plug in any retrieval logic without subclassing — a database query, an HTTP call, a feature-flag lookup, anything:
+
+```python
+from pypromptr import CallablePromptSource
+import pypromptr
+
+def fetch_from_db(key):
+    row = db.query("SELECT content FROM prompts WHERE key = %s", key)
+    return SimplePrompt(content=row["content"], metadata={})
+
+pypromptr.register_prompt_source(CallablePromptSource({
+    "system":   lambda: fetch_from_db("system"),
+    "fallback": lambda: fetch_from_db("fallback"),
+}))
+```
+
+Async callables are also supported — use `aget_prompt` / `aget` to await them:
+
+```python
+async def fetch_async():
+    async with aiohttp.ClientSession() as s:
+        r = await s.get("https://prompts.example.com/welcome")
+        return SimplePrompt(content=await r.text(), metadata={})
+
+pypromptr.register_prompt_source(CallablePromptSource({
+    "welcome": fetch_async,
+}))
+
+rendered = await pypromptr.aget("welcome", name="Alice")
+```
+
+### Custom PromptSource
+
+For a reusable backend (e.g. your own CMS or vector store), implement the `PromptSource` protocol directly — only `get_prompt` is required:
+
+```python
+from pypromptr import PromptSource, PromptLike
+
+class MyStore:
+    def keys(self) -> list[str]:          # optional — enables enumeration
+        return my_store.list_keys()
+
+    def get_prompt(self, key: str) -> PromptLike:
+        result = my_store.fetch(key)
+        if result is None:
+            raise KeyError(key)           # must raise KeyError for missing keys
+        return SimplePrompt(content=result, metadata={})
+
+    async def aget_prompt(self, key: str) -> PromptLike:  # optional — native async
+        result = await my_store.afetch(key)
+        if result is None:
+            raise KeyError(key)
+        return SimplePrompt(content=result, metadata={})
+
+pypromptr.register_prompt_source(MyStore())
+```
+
+`keys()` and `aget_prompt()` are optional. Sources without `keys()` still participate in resolution; sources without `aget_prompt()` fall back to running `get_prompt` in a thread pool.
 
 ## Lazy loading and init
 
