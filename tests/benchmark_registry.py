@@ -207,6 +207,29 @@ def test_get_prompt_sql_sqlite(benchmark):
 
 
 # ---------------------------------------------------------------------------
+# LangSmithPrompts — fake adapter (no network)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.benchmark
+def test_get_prompt_langsmith_fake_adapter(benchmark):
+    """LangSmithPrompts with FakeLangSmithAdapter: in-memory round-trip + variable conversion."""
+    from pypromptr.sources.langsmith import FakeLangSmithAdapter, LangSmithPrompts
+
+    adapter = FakeLangSmithAdapter({
+        "myorg/welcome": "Hello, {name}! Welcome to the service.",
+        "myorg/system": "You are a helpful assistant.",
+    })
+    registry = PromptRegistry(
+        LangSmithPrompts(
+            {"welcome": "myorg/welcome", "system": "myorg/system"},
+            adapter=adapter,
+        )
+    )
+    benchmark(registry.get_prompt, "welcome")
+
+
+# ---------------------------------------------------------------------------
 # LangFusePrompts — fake client (no network, requires pypromptr[langfuse])
 # ---------------------------------------------------------------------------
 
