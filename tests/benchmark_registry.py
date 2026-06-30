@@ -15,6 +15,7 @@ import pytest
 from pydantic import BaseModel
 
 from pypromptr import (
+    CachedPromptSource,
     CallablePromptSource,
     FilePrompts,
     InMemoryPrompts,
@@ -203,6 +204,40 @@ def test_get_prompt_sql_sqlite(benchmark):
         conn.commit()
 
     registry = PromptRegistry(SqlPrompts(engine=engine))
+    benchmark(registry.get_prompt, "welcome")
+
+
+# ---------------------------------------------------------------------------
+# CachedPromptSource — warm cache (measures cache hit overhead)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.benchmark
+def test_get_prompt_cached_file_prompts_warm(benchmark):
+    """CachedPromptSource wrapping FilePrompts — warm cache (should approach InMemoryPrompts speed)."""
+    registry = PromptRegistry(CachedPromptSource(FilePrompts(_PROMPTS_DIR), ttl=60))
+    registry.get_prompt("welcome")  # warm the cache
+    benchmark(registry.get_prompt, "welcome")
+
+
+@pytest.mark.benchmark
+def test_get_prompt_cached_file_prompts_cold(benchmark):
+    """CachedPromptSource wrapping FilePrompts — cold cache per call (measures source + cache write)."""
+
+    def make_cold_call():
+        cached = CachedPromptSource(FilePrompts(_PROMPTS_DIR), ttl=60)
+        return cached.get_prompt("welcome")
+
+    benchmark(make_cold_call)
+
+
+@pytest.mark.benchmark
+def test_get_prompt_cached_swr_warm(benchmark):
+    """CachedPromptSource SWR strategy — warm cache hit overhead."""
+    registry = PromptRegistry(
+        CachedPromptSource(FilePrompts(_PROMPTS_DIR), ttl=60, strategy="swr")
+    )
+    registry.get_prompt("welcome")  # warm
     benchmark(registry.get_prompt, "welcome")
 
 

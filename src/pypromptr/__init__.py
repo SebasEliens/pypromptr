@@ -11,6 +11,7 @@ from pypromptr.prompts import (
 from pypromptr.sources.callable import CallablePromptSource
 from pypromptr.sources.file import FilePromptMetadata, FilePrompts, FilePromptsConfig
 from pypromptr.registry import InMemoryPrompts, PromptLike, PromptRegistry, PromptSource
+from pypromptr.cache import CachedPromptSource
 from pypromptr._default_registry import _registry
 
 
@@ -50,6 +51,7 @@ def clear() -> None:
 
 
 __all__ = [
+    "CachedPromptSource",
     "CallablePromptSource",
     "FilePromptMetadata",
     "FilePrompts",

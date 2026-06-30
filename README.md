@@ -135,6 +135,41 @@ pypromptr.register_prompt_source(MyStore())
 
 `keys()` and `aget_prompt()` are optional. Sources without `keys()` still participate in resolution; sources without `aget_prompt()` fall back to running `get_prompt` in a thread pool.
 
+## Caching
+
+Wrap any source with `CachedPromptSource` to avoid re-fetching on every call:
+
+```python
+from pypromptr import CachedPromptSource, PromptRegistry
+from pypromptr.sources.s3 import S3Prompts
+
+registry = PromptRegistry(
+    CachedPromptSource(S3Prompts(...), ttl=300)
+)
+```
+
+**Two strategies:**
+
+`"ttl"` *(default)* — serve cached value within TTL; block the caller on first fetch and on every expiry. Simple and predictable.
+
+`"swr"` *(stale-while-revalidate)* — always return cached immediately after the first fetch; when the TTL expires, return stale and refresh in the background. The caller never blocks after warm-up. Recommended for remote sources (HTTP, S3, LangSmith).
+
+```python
+CachedPromptSource(S3Prompts(...), ttl=300, strategy="swr")
+```
+
+`ttl=None` caches forever (no expiry, no background refresh).
+
+**Manual invalidation:**
+
+```python
+source = CachedPromptSource(S3Prompts(...), ttl=300)
+source.invalidate("welcome")  # evict one key
+source.clear()                # evict everything
+```
+
+`keys()` results are cached with the same TTL. Both sync (`get_prompt`) and async (`aget_prompt`) paths are supported.
+
 ## Lazy loading and init
 
 - **Keys** are resolved at init from the source's `keys()` (no full prompt bodies loaded for file/remote sources).
@@ -167,6 +202,7 @@ Configure env vars or pass a custom client for alternatives (LangSmith, Helicone
 
 **From `pypromptr`:**
 - `PromptRegistry` — main entry point.
+- `CachedPromptSource` — TTL / SWR caching wrapper for any source.
 - `InMemoryPrompts`, `FilePrompts`, `FilePromptsConfig`, `FilePromptMetadata`.
 - `SimplePrompt`, `SimplePromptTemplate`, `MessagesPrompt`, `MessagesPromptTemplate`, `Message`, `RenderedPrompt`.
 
