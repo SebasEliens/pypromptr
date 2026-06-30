@@ -15,35 +15,53 @@ pip install pypromptr[langfuse]
 
 ## Quick start
 
+The fastest path is the module-level default registry — no `PromptRegistry` instance needed:
+
+```python
+import pypromptr
+from pypromptr import FilePrompts, InMemoryPrompts, SimplePromptTemplate
+
+# Register a directory of markdown files
+pypromptr.register_prompt_source(FilePrompts("prompts/"))
+
+# Or register individual prompts directly
+pypromptr.register_prompt(
+    "welcome",
+    SimplePromptTemplate(content="Hello, {{name}}!", metadata={}),
+)
+
+# Get rendered content from anywhere in your app
+rendered = pypromptr.get("welcome", name="Alice")
+
+# Get the raw prompt object
+prompt = pypromptr.get_prompt("welcome")
+```
+
+Last registered source wins. `register_prompt` always overrides any source for the same key.
+
+## PromptRegistry
+
+For explicit control — multiple isolated registries, combining registries, or dependency injection — use `PromptRegistry` directly:
+
 ```python
 from pypromptr import PromptRegistry, InMemoryPrompts, FilePrompts
-from pypromptr.prompts import SimplePromptTemplate
 
-# In-memory
+# Single source
 registry = PromptRegistry(InMemoryPrompts({
     "welcome": SimplePromptTemplate(content="Hello, {{name}}!", metadata={}),
 }))
 
-# Or from a directory of markdown files (lazy load on access)
+# From a directory of markdown files (lazy load on access)
 registry = PromptRegistry(FilePrompts("prompts/"))
 
-# Multiple sources tried in order — first match wins
+# Multiple sources — first match wins
 registry = PromptRegistry(FilePrompts("prompts/"), InMemoryPrompts(defaults))
-```
 
-**Access:**
-
-```python
-# Get the prompt object (loads from file/remote only when requested)
+# Access
 prompt = registry.get_prompt("welcome")
-
-# Get rendered content (pass template variables)
 rendered = registry.get("welcome", name="Alice")
-```
 
-**Combine registries:**
-
-```python
+# Combine two registries
 combined = app_prompts + lib_prompts
 ```
 
